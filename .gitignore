@@ -14,3 +14,6 @@ build/
 # IDE
 .vscode/
 .idea/
+
+# sphinx
+docs/sphinx/_build/
