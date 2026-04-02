@@ -1,6 +1,76 @@
 Metadata-Version: 2.4
 Name: roak-sdk
 Version: 0.1.0
-Summary: Python SDK for ROAK platform
-Author: Emil
-Author-email: your.email@example.com
+Summary: ROAK SDK for interacting with the ROAK API
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: requests
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: python-dotenv; extra == "dev"
+Requires-Dist: pandas; extra == "dev"
+
+# ROAK SDK
+
+Python SDK for interacting with the ROAK API. Provides a high-level interface to access projects, wells, boreholes, rigs, modems, and their associated data.
+
+## Requirements
+
+- Python 3.10+
+- `requests`
+
+## Installation
+
+```bash
+pip install -e .
+```
+
+For development dependencies (pytest, dotenv, pandas):
+
+```bash
+pip install -e ".[dev]"
+``` 
+
+## Quick Start
+
+```python
+from roak_sdk import Roak
+
+roak = Roak(username="your_username", password="your_password")
+
+# Get all projects
+projects = roak.get_projects()
+
+# Get wells within a project
+wells = projects[0].get_wells()
+
+# Get data from a well
+data = wells[0].get_data()
+
+# Get feeds available on an asset
+feeds = wells[0].get_feeds()
+```
+
+## Documentation
+
+Full API documentation is pre-built and ready to view. Open the documentation here:
+
+[View API Documentation](docs/sphinx/_build/html/index.html)
+
+Production readiness checklist for rollout planning:
+
+[Production Readiness Checklist](docs/production_readiness_checklist.md)
+
+This shows the complete API reference with all user-facing classes and methods.
+
+### Rebuilding Documentation
+
+If you make changes to the source code and want to regenerate the documentation:
+
+```bash
+# Install Sphinx (if not already installed)
+pip install sphinx sphinx-rtd-theme
+
+# Rebuild the docs
+python -m sphinx -b html docs/sphinx docs/sphinx/_build/html
+```

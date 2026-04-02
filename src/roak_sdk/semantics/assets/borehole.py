@@ -1,92 +1,98 @@
-from roak_sdk.semantics.asset import Asset
-from typing import override
-from datetime import datetime
-import bisect
+from __future__ import annotations
 
+from collections import defaultdict
+from datetime import datetime
+
+from roak_sdk.clients.borehole_client import BoreholeClient
+from roak_sdk.clients.base_client import millis_to_datetime
+from roak_sdk.semantics.asset import Asset
+from roak_sdk.config import DEFAULT_BOREHOLE_FEEDS
+from roak_sdk.clients.client_registry import ClientRegistry
+    
 
 class Borehole(Asset):
-    """
-    Represents a borehole within a rig in ROAK.
-    """
+    """Represents a Borehole asset."""
 
-    STANDARD_FEEDS = [
-        "Depth",
-        "Rotation Speed",
-        "Rotation Pressure",
-        "Bit Force",
-        "Pullup Pressure",
-    ]
+    DEFAULT_FEEDS = DEFAULT_BOREHOLE_FEEDS
+    DEFAULT_TIMEFRAME_DAYS = 1  # Boreholes often need very recent data
 
-    def __init__(self, guid, name, client, project=None):
-        self._guid = guid
-        self._name = name
-        self._client = client
-        self._project = project
+    def __init__(self, data: dict, registry: ClientRegistry) -> None:
+        """Initialize Borehole from API response data."""
+        super().__init__(data, registry)
+        self._borehole_client = registry.get(BoreholeClient)  # Assuming RigClient has borehole-specific methods
 
-    @override
-    def get_start_time(self):
-        """Borehole default start time is epoch (1970-01-01)."""
-        return 0
-
-    # -----------------------------
-    # Depth API
-    # -----------------------------
-    def get_depth_data(self):
+    def get_depth_data(self) -> list[dict]:
+        """Fetch depth data for this borehole.
+        
+        Returns:
+            list[dict]: A list of records, each containing:
+                - timestamp: The time of the measurement (millis since epoch)
+                - datetime: Python datetime object (UTC) derived from timestamp
+                - depth: The depth of the measurement
+                - <feedname>: The value for each feed at that timestamp/depth
         """
-        Fetch raw depth data from the depth endpoint, then pivot it into
-        timestamp-centric records with all STANDARD_FEEDS.
+        raw_depth_data = self._borehole_client.get_depth_data(self.guid)
+        feed_names = {feed.get("name") for feed in raw_depth_data if feed.get("name")}
+        result = self._pivot_depth_data(raw_depth_data)
+        return self._forward_fill_values(result, feed_names)
+
+    def _pivot_depth_data(self, raw_data: list[dict]) -> list[dict]:
+        """Transform feed-centric depth data to timestamp/depth-centric format.
+        
+        Args:
+            raw_data: List of dicts with name, unitName, unitSymbol, and values
+                     (where values is a list of {time, depth, value})
+        
+        Returns:
+            List of dicts with timestamp, datetime, depth, and each feed as <feedname>: <value>
         """
-        raw = self._client.get_depth_data_raw(self._guid)
-        return self._pivot_depth_data(raw)
-
-    def _pivot_depth_data(self, feeds_data):
-        """
-        Convert ROAK depthData response into timestamp-based records.
-
-        Each feed value contains: time, depth, value.
-        Returns timestamp-centric records with depth included.
-        """
-
-        if not feeds_data:
-            return []
-
-        def get_ts(v):
-            return v.get("time") or v.get("timestamp")
-
-        timestamps = sorted(
-            {
-                get_ts(v)
-                for f in feeds_data
-                for v in f.get("values", [])
-                if get_ts(v) is not None
+        # Group values by (timestamp, depth)
+        grouped = defaultdict(dict)
+        
+        for feed in raw_data:
+            feed_name = feed.get("name")
+            for entry in feed.get("values", []):
+                key = (entry.get("time"), entry.get("depth"))
+                grouped[key][feed_name] = entry.get("value")
+        
+        # Build the result list
+        result = []
+        for (timestamp, depth), feed_values in grouped.items():
+            record = {
+                "timestamp": timestamp,
+                "datetime": millis_to_datetime(timestamp) if timestamp is not None else None,
+                "depth": depth,
             }
-        )
+            record.update(feed_values)
+            result.append(record)
+        
+        # Sort by timestamp, then by depth
+        result.sort(key=lambda x: (x.get("timestamp") or 0, x.get("depth") or 0))
+        
+        return result
 
-        feed_lookup = {
-            f.get("name"): {
-                get_ts(v): (v.get("value"), v.get("depth"))
-                for v in f.get("values", [])
-                if get_ts(v) is not None
-            }
-            for f in feeds_data
-        }
-
-        results = []
-        for ts in timestamps:
-            record = {"timestamp": ts}
-            depth_for_ts = None
-
-            for fname, by_ts in feed_lookup.items():
-                value_depth = by_ts.get(ts)
-                if value_depth:
-                    value, depth = value_depth
-                    record[fname] = value
-                    if depth is not None:
-                        depth_for_ts = depth
+    def _forward_fill_values(self, records: list[dict], feed_names: set[str]) -> list[dict]:
+        """Forward-fill empty values from previous records.
+        
+        Args:
+            records: List of record dicts to fill.
+            feed_names: Set of feed names to check and fill.
+        
+        Returns:
+            New list of dicts with empty values forward-filled.
+        """
+        result = []
+        last_values = {}
+        for record in records:
+            filled_record = record.copy()
+            for feed_name in feed_names:
+                value = filled_record.get(feed_name)
+                if value is None or value == "":
+                    # Use previous value if available
+                    if feed_name in last_values:
+                        filled_record[feed_name] = last_values[feed_name]
                 else:
-                    record[fname] = None
-
-            record["depth"] = depth_for_ts
-            results.append(record)
-
-        return results
+                    # Update last known value
+                    last_values[feed_name] = value
+            result.append(filled_record)
+        return result

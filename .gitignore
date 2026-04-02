@@ -1,41 +1,16 @@
-# Create .gitignore if it doesn't exist
-New-Item .gitignore -Force
+# Environment variables
+.env
 
-# Add recommended patterns
-Set-Content .gitignore @"
-# Python cache
-__pycache__/
-*.pyc
-*.pyo
-
-# Byte-compiled / optimized / DLL files
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-
-# Coverage.py files
-.coverage
-.coverage.*
-htmlcov/
-coverage.xml
-
-
-# Virtual environments
 .venv/
-.env/
-.env
-
-# Build artifacts
-build/
-dist/
+venv/
 *.egg-info/
+dist/
+build/
 
-# VS Code
+# IDE
 .vscode/
-"@
-
-# Stage, commit, and push
-git add .gitignore
-git commit -m "Add .gitignore to keep repo clean"
-git push origin dev
-.coveragerc
+.idea/

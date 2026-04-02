@@ -1,19 +1,17 @@
-from roak_sdk.semantics.semantic import Semantic
+from .project import Project
 
-
-class Site(Semantic):
+class Site(Project):
     """
-    Represents a site in ROAK.
-    A Site may contain multiple Assets but does not directly talk to the API.
-    WORK IN PROGRESS
+    Represents a Site within a project.
+
+    Basically provides all the same functionality as Project, except the possibility to get the sites.
     """
-
-    def __init__(self, guid: str, name: str):  # needs a client for load_feeds
-        super().__init__(guid, name, client=None)
-        self._assets: list = []  # list of assets inside of this site
-
-    def add_asset(self, asset):
-        self._assets.append(asset)
-
-    def get_assets(self):
-        return self._assets
+    
+    def get_sites(self):
+        """
+        Override to prevent hierarchical site nesting.
+        
+        Raises:
+            NotImplementedError: Sites do not support containing child sites.
+        """
+        raise NotImplementedError("Sites cannot contain child sites. Site nesting is not supported.")

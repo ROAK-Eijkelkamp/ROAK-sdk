@@ -1,14 +1,10 @@
-from roak_sdk.semantics.asset import Asset
+from __future__ import annotations
 
+from roak_sdk.semantics.asset import Asset
+from roak_sdk.config import DEFAULT_WELL_FEEDS
 
 class Well(Asset):
-    STANDARD_FEEDS = [
-        "waterLevelReference",
-        "diverPressure",
-        "wellLength",
-        "baroTemperature",
-    ]
+    """Represents a Well asset."""
 
-    def __init__(self, guid: str, name: str, client, project=None):
-        super().__init__(guid, name, client, project=project)
-        self.name = name
+    DEFAULT_FEEDS = DEFAULT_WELL_FEEDS
+    DEFAULT_TIMEFRAME_DAYS = 1 # Wells typically need recent data

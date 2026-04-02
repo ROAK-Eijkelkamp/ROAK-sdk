@@ -1,116 +1,90 @@
-# ROAK SDK (Python)
+# ROAK SDK
 
-A Python Software Development Kit (SDK) for interacting with the **ROAK
-data platform** at Royal Eijkelkamp.
+Python SDK for interacting with the ROAK API. Provides a high-level interface to access projects, wells, boreholes, rigs, modems, and their associated data.
 
-This SDK provides a clean, object-oriented interface for authentication,
-asset discovery, and time-series data retrieval from ROAK without
-requiring users to interact directly with the REST API.
+## Requirements
 
-> ⚠️ **Status**: In development --- internship project (not
-> production-ready)
-
-------------------------------------------------------------------------
-
-## About This Project
-
-This SDK was developed as part of an internship at **Royal Eijkelkamp**
-in collaboration with **HAN University of Applied Sciences**.
-
-The primary goals are: - Provide a **clear and reusable Python
-interface** to ROAK - Abstract away API complexity - Enable fast
-scripting and data pipelines for ROAK users
-
-Although the author's background is mainly **Java**, this project
-focuses on applying **Python best practices** in a real-world SDK.
-
-------------------------------------------------------------------------
-
-## What the SDK Does
-
-The ROAK SDK allows users to:
-
--   Authenticate securely with ROAK
--   Retrieve projects and assets
--   Fetch time-series measurement data
--   Work with ROAK concepts as Python objects
-
-### Core Domain Objects
-
--   **Project** → Groups assets within ROAK\
--   **Well** → Water level and pressure measurements\
--   **Rig** → Drilling rigs\
--   **Borehole** → Depth-aligned measurements via rig data\
--   **GenericAsset** → Placeholder for unknown or future asset types
-
-All API calls are handled internally by the SDK.
-
-------------------------------------------------------------------------
-
-## Documentation
-
-📘 **Software Guidebook (SGB)**\
-The full design, architecture, and implementation details are documented
-in the Software Guidebook.
-
-➡️ **Start with**: `docs/Software_Guidebook.md`
-
-------------------------------------------------------------------------
+- Python 3.10 through 3.12
+- A virtual environment (`venv` or `.venv`)
+- `requests>=2.31,<3`
 
 ## Installation
 
-### Development Installation (recommended)
+Create and activate a virtual environment first, then install the package in editable mode:
 
-``` bash
+```bash
+python -m venv .venv
+```
+
+On Windows:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+On macOS/Linux:
+
+```bash
+source .venv/bin/activate
+```
+
+```bash
 pip install -e .
 ```
 
-### Virtual Environment
+For development dependencies (pytest, dotenv, pandas):
 
-``` bash
-python -m venv .venv
-.\.venv\Scripts\Activate
+```bash
+pip install -e ".[dev]"
+``` 
+
+Supported runtime and development versions are kept intentionally narrow so the
+same setup works across the team without environment drift.
+
+## Quick Start
+
+```python
+from roak_sdk import Roak
+
+roak = Roak(username="your_username", password="your_password")
+
+# Get all projects
+projects = roak.get_projects()
+
+# Get wells within a project
+wells = projects[0].get_wells()
+
+# Get data from a well
+data = wells[0].get_data()
+
+# Get feeds available on an asset
+feeds = wells[0].get_feeds()
 ```
 
-Install dependencies:
+## Documentation
 
-``` bash
-pip install -r requirements.txt
+Full API documentation is pre-built and ready to view. Open the documentation here:
+
+[Open Documentation in Browser](open-documentation.cmd)
+
+For a short introduction aimed at first-time users, see [First Users](docs/first_users.md).
+
+If you need to adjust long-running request behavior, see [Getting Started](docs/getting_started.md) for `request_timeout` and `set_request_timeout()`.
+
+Production readiness checklist for rollout planning:
+
+[Production Readiness Checklist](docs/production_readiness_checklist.md)
+
+This shows the complete API reference with all user-facing classes and methods.
+
+### Rebuilding Documentation
+
+If you make changes to the source code and want to regenerate the documentation:
+
+```bash
+# Install Sphinx (if not already installed)
+pip install sphinx sphinx-rtd-theme
+
+# Rebuild the docs
+python -m sphinx -b html docs/sphinx docs/sphinx/_build/html
 ```
-
-------------------------------------------------------------------------
-
-## Basic Usage Example
-
-``` python
-from roak_sdk.roak import Roak
-import os
-from datetime import datetime, timedelta
-
-username = "user@example.com"
-password = os.getenv("ROAK_PASSWORD")
-
-roak = Roak(user=username, password=password)
-
-project = roak.get_project("TestProject")
-wells = project.get_assets("well")
-
-start = datetime.now() - timedelta(days=1)
-end = datetime.now()
-
-for well in wells:
-    data = well.get_data(
-        start=start,
-        end=end,
-        feeds=["waterLevelReference", "diverPressure"]
-    )
-    print(well.name, data)
-```
-
-------------------------------------------------------------------------
-
-## Author
-
-**Emil Garibov**\
-Internship Project --- Royal Eijkelkamp\
-HAN University of Applied Sciences

@@ -1,108 +1,179 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from roak_sdk.semantics.semantic import Semantic
-from roak_sdk.clients.well_client import WellClient
-from roak_sdk.clients.rig_client import RigClient
-from roak_sdk.clients.generic_asset_client import GenericAssetClient
-from roak_sdk.semantics.assets.rig import Rig
+from roak_sdk.clients.project_client import ProjectClient
+from roak_sdk.clients.client_registry import ClientRegistry
+from roak_sdk.semantics.factory import make_asset, ASSET_TYPE_WELL, ASSET_TYPE_BOREHOLE
+from roak_sdk.semantics.asset import Asset
 from roak_sdk.semantics.assets.well import Well
 from roak_sdk.semantics.assets.borehole import Borehole
-from roak_sdk.semantics.assets.generic_asset import GenericAsset
-import difflib
+from roak_sdk.config import ASSET_TYPES, ASSET_TYPE_LIST
+from roak_sdk.roak_error import AssetTypeMismatchError
 
+if TYPE_CHECKING:
+    from roak_sdk.semantics.site import Site
 
 class Project(Semantic):
     """
-    Represents a project in ROAK.
-    A Project has its own client and contains multiple Sites.
-    Automatically loads feed variables on initialization.
+    Represents a ROAK Project.
+    
+    Attributes are dynamically accessed from the API response data.
+    Use snake_case names (e.g., `owner_id`, `start_date`) to access camelCase API fields.
+    
+    Provides methods to fetch assets (wells, boreholes, rigs) within the project.
     """
 
-    CLIENTSDICT = {
-        "well": (WellClient, Well),
-        "rig": (RigClient, Rig),
-        "borehole": (RigClient, Borehole),
-        "generic_asset": (GenericAssetClient, GenericAsset),
-    }  # add more assets gernic , boreholes
-
-    def __init__(self, data: dict, client=None):
+    def __init__(self, data: dict, registry: ClientRegistry) -> None:
         """
-        Initialize Project from API dict and auto-load feeds.
+        Initialize Project from API response data.
+
+        Args:
+            data (dict): Project data from the API.
+            registry (ClientRegistry): Registry for obtaining client instances.
         """
-        self._feeds_loaded = False
+        super().__init__(data, registry)
+        self._client = registry.get(ProjectClient)
 
-        super().__init__(guid=data["guid"], name=data["name"], client=client)
-        self.client = client
+    # =========================================================================
+    # Generic asset methods
+    # =========================================================================
 
-        if not self.client or not getattr(self.client, "headers", None):
-            raise ValueError(
-                "Project must have a client with valid authorization headers"
-            )
-
-        # Basic project info
-        self.id = data.get("id")
-        self.owner_id = data.get("ownerId")
-        self.name = data.get("name")
-        self.guid = data.get("guid")
-        self.path = data.get("path")
-        self.guid_path = data.get("guidPath")
-        self.type_guid = data.get("typeGuid")
-        self.parent_guid = data.get("parentGuid")
-        self.country = data.get("country")
-        self.start_date = data.get("startDate")
-        self.child_types = data.get("childTypes", [])
-
-        self._sites: list = []  # Will hold list of Site instances
-
-        # --- Automatically load feeds ---
-        self.load_feeds()
-        self._feeds_loaded = True
-
-    def get_assets(self, asset_type: str):
+    def get_assets(self, asset_type: str | None = None) -> list["Asset"]:
         """
-        Fetch all assets of a given type for this project.
-        Ensures Boreholes have a rig client attached for depth data.
+        Fetch all assets in this project, optionally filtered by type.
+
+        Args:
+            asset_type (str | None): Optional asset type filter 
+                                      (e.g., "well", "borehole", "rig").
+
+        Returns:
+            list[Asset]: List of Asset objects.
         """
-        if asset_type not in self.CLIENTSDICT:
-            closest = difflib.get_close_matches(
-                asset_type, self.CLIENTSDICT.keys(), n=1
-            )
-            suggestion = f" Did you mean '{closest[0]}'?" if closest else ""
-            raise ValueError(
-                f"Unknown asset type: {asset_type!r}.{suggestion} "
-                "Please check your spelling or ensure the asset type is supported."
-            )
+        data = self._client.get_assets(self.guid, asset_type)
 
-        client_cls, asset_class = self.CLIENTSDICT[asset_type]
+        # filter out non-assets
+        data = [x for x in data if x["typeGuid"] in ASSET_TYPES]
+        return [make_asset(d, self._registry) for d in data]
 
-        if self.client is None:
-            raise RuntimeError("Project.get_assets: self.client is None!")
-
-        authorization = self.client.headers
-        client = client_cls(authorization=authorization)
-
-        # Attach rig client if this is a borehole
-        if asset_type == "borehole":
-            client._rig_client = getattr(self.client, "_rig_client", None)
-
-        raw_assets = client.fetch_assets(self.guid, asset_type)
-
-        # Pass the client with _rig_client attached
-        return [
-            asset_class(asset["guid"], asset["name"], client=client, project=self)
-            for asset in raw_assets
-        ]
-
-    def __repr__(self):
+    def get_asset_by_guid(self, guid: str) -> "Asset": 
         """
-        Return the official string representation of the Project.
+        Fetch a single asset by its GUID.
 
-        Shows the project's name and guid for easier debugging and inspection.
+        Args:
+            guid (str): GUID of the asset.
+
+        Returns:
+            Asset: The asset object.
         """
-        return f"<Project name={self.name!r} guid={self.guid!r}>"
+        data = self._client.get_asset_by_guid(self.guid, guid)
+        return make_asset(data, self._registry)
 
-    def add_site(self, site):
-        """ "This function is WIP"""
-        self._sites.append(site)
+    def get_asset_by_name(
+        self,
+        name: str,
+        asset_type: str | None = None,
+        allow_first_match: bool = False,
+    ) -> "Asset":
+        """
+        Fetch a single asset by name.
 
-    def get_sites(self):
-        """ "This function is WIP"""
-        return self._sites
+        Args:
+            name (str): Name of the asset.
+            asset_type (str | None): Optional asset type filter.
+            allow_first_match (bool): If True, return the first match when
+                multiple assets share the same name.
+
+        Returns:
+            Asset: The asset object.
+        """
+        data = self._client.get_asset_by_name(
+            self.guid,
+            name,
+            asset_type,
+            allow_first_match=allow_first_match,
+        )
+        return make_asset(data, self._registry)
+
+    def get_sites(self) -> list["Site"]:
+        """Fetch all child sites in this project scope."""
+        from roak_sdk.semantics.site import Site
+
+        data = self._client.get_assets(self.guid, "ED_SITE")
+        return [Site(site_data, self._registry) for site_data in data]
+
+    def get_site_by_guid(self, guid: str) -> "Site":
+        """Fetch a site by its GUID within this project scope."""
+        from roak_sdk.semantics.site import Site
+
+        data = self._client.get_asset_by_guid(self.guid, guid)
+        if data["typeGuid"] != "ED_SITE":
+            raise AssetTypeMismatchError("Site", "GUID", guid, data["typeGuid"])
+        return Site(data, self._registry)
+
+    def get_site_by_name(self, name: str, allow_first_match: bool = False) -> "Site":
+        """Fetch a site by its name within this project scope."""
+        from roak_sdk.semantics.site import Site
+
+        data = self._client.get_asset_by_name(
+            self.guid,
+            name,
+            "ED_SITE",
+            allow_first_match=allow_first_match,
+        )
+        if data["typeGuid"] != "ED_SITE":
+            raise AssetTypeMismatchError("Site", "name", name, data["typeGuid"])
+        return Site(data, self._registry)
+
+    # =========================================================================
+    # Well convenience methods
+    # =========================================================================
+
+    def get_wells(self) -> list["Well"]:
+        """Fetch all wells in this project."""
+        return self.get_assets(asset_type=ASSET_TYPE_WELL)
+
+    def get_well_by_guid(self, guid: str) -> "Well":
+        """Fetch a well by its GUID."""
+        asset = self.get_asset_by_guid(guid)
+        if not asset.typeGuid == ASSET_TYPE_WELL:
+            raise AssetTypeMismatchError("Well", "GUID", guid, asset.typeGuid)
+        return asset
+
+    def get_well_by_name(self, name: str, allow_first_match: bool = False) -> "Well":
+        """Fetch a well by its name."""
+        asset = self.get_asset_by_name(
+            name,
+            asset_type=ASSET_TYPE_WELL,
+            allow_first_match=allow_first_match,
+        )
+        if not asset.typeGuid == ASSET_TYPE_WELL:
+            raise AssetTypeMismatchError("Well", "name", name, asset.typeGuid)
+        return asset
+    
+    # =========================================================================
+    # Borehole convenience methods
+    # =========================================================================
+
+    def get_boreholes(self) -> list["Borehole"]:
+        """Fetch all boreholes in this project."""
+        return self.get_assets(asset_type=ASSET_TYPE_BOREHOLE)
+
+    def get_borehole_by_guid(self, guid: str) -> "Borehole":
+        """Fetch a borehole by its GUID."""
+        asset = self.get_asset_by_guid(guid)
+        from roak_sdk.semantics.asset import Borehole
+        if not isinstance(asset, Borehole):
+            actual_type = getattr(asset, "typeGuid", type(asset).__name__)
+            raise AssetTypeMismatchError("Borehole", "GUID", guid, actual_type)
+        return asset
+
+    def get_borehole_by_name(self, name: str, allow_first_match: bool = False) -> "Borehole":
+        """Fetch a borehole by its name."""
+        return self.get_asset_by_name(
+            name,
+            asset_type=ASSET_TYPE_BOREHOLE,
+            allow_first_match=allow_first_match,
+        )
+

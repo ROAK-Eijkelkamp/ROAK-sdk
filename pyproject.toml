@@ -2,7 +2,22 @@
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
-[tool.pytest.ini_options]
-markers = [
-    "integration: mark a test as an integration test",
+[project]
+name = "roak-sdk"
+version = "0.1.0"
+description = "ROAK SDK for interacting with the ROAK API"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "requests>=2.31,<3",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8,<9",
+    "python-dotenv>=1,<2",
+    "pandas>=2,<3",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
