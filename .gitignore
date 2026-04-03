@@ -15,5 +15,6 @@ build/
 .vscode/
 .idea/
 
-# sphinx
+# don't show docs in git
 docs/sphinx/_build/
+docs/internal_documentation 
