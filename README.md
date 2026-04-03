@@ -28,6 +28,8 @@ On macOS/Linux:
 source .venv/bin/activate
 ```
 
+Install via local install:
+
 ```bash
 pip install -e .
 ```

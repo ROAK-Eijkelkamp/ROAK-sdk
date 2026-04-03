@@ -18,7 +18,9 @@ src/roak_sdk/clients/device_client.py
 src/roak_sdk/clients/project_client.py
 src/roak_sdk/clients/rig_client.py
 src/roak_sdk/clients/roak_client.py
+src/roak_sdk/clients/semantic_client.py
 src/roak_sdk/semantics/asset.py
+src/roak_sdk/semantics/customer.py
 src/roak_sdk/semantics/device.py
 src/roak_sdk/semantics/factory.py
 src/roak_sdk/semantics/project.py

@@ -28,10 +28,6 @@ roak = roak_sdk.Roak(
     base_url=ROAK_BASE_URL,
 )   
 
-# get all modems
-#modems = roak.get_modems()
-#assert len(modems) >= 63
-
 # works for pro 400
 modem_400 = roak.get_modem_by_guid(MODEM_GUID_400)
 print([key for key in modem_400.get_attributes()])

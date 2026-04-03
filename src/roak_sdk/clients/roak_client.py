@@ -99,6 +99,9 @@ class RoakClient(BaseClient):
         else:
             filtered_assets = [asset for asset in assets if asset.get("name") == name]
 
+        # filter out rig_by_site
+        filtered_assets = [asset for asset in filtered_assets if asset["typeGuid"] != "MWD_RIG_ON_SITE"]
+
         if len(filtered_assets) == 0:
             raise AssetNotFoundError("Asset", "name", name, scope=f"type '{type_guid}'")
 
