@@ -2,6 +2,8 @@
 
 This guide is aimed at first-time users. It covers the most common flows in a simple and clear way.
 
+Current release status: **Beta (v0.1.0)**.
+
 ---
 
 ## What You Need

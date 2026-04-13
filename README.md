@@ -2,6 +2,8 @@
 
 Python SDK for interacting with the ROAK API. Provides a high-level interface to access projects, wells, boreholes, rigs, modems, and their associated data.
 
+Current release status: **Beta (v0.1.0)**.
+
 ## Requirements
 
 - Python 3.10 through 3.12

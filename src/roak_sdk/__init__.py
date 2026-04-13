@@ -28,6 +28,9 @@ __all__ = [
     "MissingRefreshTokenError",
     "InvalidJSONError",
     "TokenExpiredError",
+    "__version__",
+    "__release_stage__",
 ]
 
 __version__ = "0.1.0"
+__release_stage__ = "beta"

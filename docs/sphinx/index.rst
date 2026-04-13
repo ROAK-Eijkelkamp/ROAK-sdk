@@ -3,6 +3,8 @@ ROAK SDK Documentation
 
 The ROAK SDK provides a Python interface for interacting with the ROAK API.
 
+Current release status: **Beta (v0.1.0)**.
+
 Quick Start
 -----------
 
