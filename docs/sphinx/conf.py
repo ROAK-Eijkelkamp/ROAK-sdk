@@ -10,7 +10,8 @@ sys.path.insert(0, os.path.abspath("../../src"))
 project = "ROAK SDK"
 copyright = "2026, ROAK"
 author = "ROAK Team"
-release = "0.1.0"
+version = "0.1"
+release = "0.1.0 (Beta)"
 
 # -- Extensions ---------------------------------------------------------------
 extensions = [
@@ -54,8 +55,8 @@ html_theme_options = {
     "collapse_navigation": False,
 }
 
-html_title = "ROAK SDK Documentation"
-html_short_title = "ROAK SDK"
+html_title = "ROAK SDK Documentation (Beta v0.1.0)"
+html_short_title = "ROAK SDK v0.1.0 Beta"
 
 # Build canonical docs URL automatically in GitHub Actions.
 _repo_slug = os.environ.get("GITHUB_REPOSITORY", "")

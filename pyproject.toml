@@ -8,6 +8,9 @@ version = "0.1.0"
 description = "ROAK SDK for interacting with the ROAK API"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
+classifiers = [
+    "Development Status :: 4 - Beta",
+]
 dependencies = [
     "requests>=2.31,<3",
 ]

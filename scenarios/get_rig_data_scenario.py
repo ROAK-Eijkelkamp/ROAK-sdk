@@ -13,13 +13,12 @@ load_dotenv()
 # settings
 ROAK_USERNAME = os.getenv("ROAK_USERNAME")
 ROAK_PASSWORD = os.getenv("ROAK_PASSWORD")
-ROAK_BASE_URL = "https://dev.roak.com"
 
-START_DATETIME = datetime(2024, 4, 11, tzinfo=timezone.utc)
-END_DATETIME = datetime(2024, 4, 12, tzinfo=timezone.utc)
+START_DATETIME = datetime(2023, 7, 21, tzinfo=timezone.utc)
+END_DATETIME = datetime(2023, 7, 22, tzinfo=timezone.utc)
 
-RIG_NAME = "SOLSA_MWD"
-BOREHOLE_NAME = "test aq1"
+RIG_NAME = "42823101test"
+BOREHOLE_NAME = "21_7_field_1"
 
 # connect
 password = os.getenv("ROAK_PASSWORD")
@@ -29,33 +28,30 @@ username = os.getenv("ROAK_USERNAME")
 roak = roak_sdk.Roak(
     username=ROAK_USERNAME,
     password=ROAK_PASSWORD,
-    base_url=ROAK_BASE_URL,
     debug=True,  # enable debug logging to see request details
 )   
+
+# do not timeout, as some of the data requests in this scenario can be large and take a while to complete
 roak.set_request_timeout(-1)
 
-# get all rigs
-#rigs = roak.get_rigs()
-#assert len(rigs) >= 44
-
-# get all boreholes of the last month that belong to two specific rigs (MWD Test)
-# The dev dataset has duplicate rig names, so opt into the first match for this scenario.
-rig = roak.get_rig_by_name(RIG_NAME, allow_first_match=True)
+# get the rig. Setting allow_first_match means that the program does not crash if you have two rigs of the same name
+rig = roak.get_rig_by_name(RIG_NAME)
 
 boreholes = rig.get_boreholes()
-assert len(boreholes) >= 98
+assert len(boreholes) >= 30
 
 # collects one rig's data
 borehole = rig.get_borehole_by_name(BOREHOLE_NAME)
 feeds = borehole.get_feeds()
 assert len(feeds) >= 3
 
+# you can get specific data by setting the feeds
 feeds = ["Rotation Pressure", "Torque"]
 data = borehole.get_data(feeds=feeds, start_datetime=START_DATETIME, end_datetime=END_DATETIME)
 assert len(data) == 2 # two feeds in the period
 
 data = rig.get_data(start_datetime=START_DATETIME, end_datetime=END_DATETIME)
-assert len(data) == 2 # 2 feeds in the period
+assert len(data) == 9 # 2 feeds in the period
 
 depth_data = borehole.get_depth_data()
 df = pd.DataFrame(depth_data)

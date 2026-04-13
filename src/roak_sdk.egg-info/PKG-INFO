@@ -2,13 +2,13 @@ Metadata-Version: 2.4
 Name: roak-sdk
 Version: 0.1.0
 Summary: ROAK SDK for interacting with the ROAK API
-Requires-Python: >=3.10
+Requires-Python: <3.13,>=3.10
 Description-Content-Type: text/markdown
-Requires-Dist: requests
+Requires-Dist: requests<3,>=2.31
 Provides-Extra: dev
-Requires-Dist: pytest; extra == "dev"
-Requires-Dist: python-dotenv; extra == "dev"
-Requires-Dist: pandas; extra == "dev"
+Requires-Dist: pytest<9,>=8; extra == "dev"
+Requires-Dist: python-dotenv<2,>=1; extra == "dev"
+Requires-Dist: pandas<3,>=2; extra == "dev"
 
 # ROAK SDK
 
@@ -16,10 +16,29 @@ Python SDK for interacting with the ROAK API. Provides a high-level interface to
 
 ## Requirements
 
-- Python 3.10+
-- `requests`
+- Python 3.10 through 3.12
+- A virtual environment (`venv` or `.venv`)
+- `requests>=2.31,<3`
 
 ## Installation
+
+Create and activate a virtual environment first, then install the package in editable mode:
+
+```bash
+python -m venv .venv
+```
+
+On Windows:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+On macOS/Linux:
+
+```bash
+source .venv/bin/activate
+```
 
 ```bash
 pip install -e .
@@ -30,6 +49,9 @@ For development dependencies (pytest, dotenv, pandas):
 ```bash
 pip install -e ".[dev]"
 ``` 
+
+Supported runtime and development versions are kept intentionally narrow so the
+same setup works across the team without environment drift.
 
 ## Quick Start
 
@@ -55,7 +77,11 @@ feeds = wells[0].get_feeds()
 
 Full API documentation is pre-built and ready to view. Open the documentation here:
 
-[View API Documentation](docs/sphinx/_build/html/index.html)
+[Open Documentation in Browser](open-documentation.cmd)
+
+For a short introduction aimed at first-time users, see [First Users](docs/first_users.md).
+
+If you need to adjust long-running request behavior, see [Getting Started](docs/getting_started.md) for `request_timeout` and `set_request_timeout()`.
 
 Production readiness checklist for rollout planning:
 

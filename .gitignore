@@ -15,8 +15,14 @@ build/
 .vscode/
 .idea/
 
-# sphinx
+# don't show internal documentation in git
 docs/sphinx/_build/
+docs/internal_documentation 
+tests/TEST_PLAN.md
 
-# internal docs
-re_scenarios/
+# only for Royal Eijkelkamp
+re_scenarios
+
+# packaging artifacts
+src/roak_sdk.egg-info/
+
