@@ -83,8 +83,8 @@ If you make changes to the source code and want to regenerate the documentation:
 
 ```bash
 # Install Sphinx (if not already installed)
-pip install sphinx sphinx-rtd-theme
+.venv/Scripts/python.exe -m pip install sphinx sphinx-rtd-theme
 
 # Rebuild the docs
-python -m sphinx -b html docs/sphinx docs/sphinx/_build/html
+.venv/Scripts/python.exe -m sphinx -b html docs/sphinx docs/sphinx/_build/html
 ```

@@ -17,3 +17,6 @@ build/
 
 # sphinx
 docs/sphinx/_build/
+
+# internal docs
+re_scenarios/

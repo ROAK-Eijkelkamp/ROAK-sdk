@@ -18,6 +18,7 @@ extensions = [
     "sphinx.ext.napoleon",      # Support Google/NumPy-style docstrings
     "sphinx.ext.viewcode",      # Add [source] links
     "sphinx.ext.intersphinx",   # Cross-reference Python stdlib docs
+    "sphinx.ext.githubpages",   # Emit .nojekyll for GitHub Pages
 ]
 
 # -- Autodoc settings ---------------------------------------------------------
@@ -55,6 +56,14 @@ html_theme_options = {
 
 html_title = "ROAK SDK Documentation"
 html_short_title = "ROAK SDK"
+
+# Build canonical docs URL automatically in GitHub Actions.
+_repo_slug = os.environ.get("GITHUB_REPOSITORY", "")
+if "/" in _repo_slug:
+    _owner, _repo = _repo_slug.split("/", 1)
+    html_baseurl = f"https://{_owner}.github.io/{_repo}/"
+else:
+    html_baseurl = ""
 
 # -- General ------------------------------------------------------------------
 source_suffix = ".rst"
