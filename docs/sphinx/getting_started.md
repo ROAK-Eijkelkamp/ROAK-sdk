@@ -197,7 +197,6 @@ boreholes = rig.get_boreholes()
 
 borehole  = rig.get_borehole_by_name("test aq1")
 feeds     = borehole.get_feeds()
-
 data      = borehole.get_data(
     feeds=["rotation_pressure", "torque"],
     start_datetime=START,
@@ -307,4 +306,5 @@ site = roak.get_site_by_name("Home", allow_first_match=True)
 
 ## Where to Go Next
 
-- [Full API Reference](https://roak-eijkelkamp.github.io/ROAK-sdk/) — all classes and methods
+Use the sidebar to navigate the full API Reference — all user-facing classes and
+methods are documented there with parameter descriptions and examples.

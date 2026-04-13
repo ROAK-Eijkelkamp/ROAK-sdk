@@ -2,26 +2,15 @@ ROAK SDK Documentation
 ======================
 
 The ROAK SDK provides a Python interface for interacting with the ROAK API.
+It covers projects, wells, boreholes, rigs, modems, and their associated data.
 
 Current release status: **Beta (v0.1.0)**.
 
-Quick Start
------------
+.. toctree::
+   :maxdepth: 2
+   :caption: User Guide
 
-.. code-block:: python
-
-   from roak_sdk import Roak
-
-   roak = Roak(username="your_username", password="your_password")
-
-   # Get all projects
-   projects = roak.get_projects()
-
-   # Get wells within a project
-   wells = projects[0].get_wells()
-
-   # Get data from a well
-   data = wells[0].get_data()
+   getting_started
 
 .. toctree::
    :maxdepth: 2

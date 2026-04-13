@@ -20,6 +20,7 @@ extensions = [
     "sphinx.ext.viewcode",      # Add [source] links
     "sphinx.ext.intersphinx",   # Cross-reference Python stdlib docs
     "sphinx.ext.githubpages",   # Emit .nojekyll for GitHub Pages
+    "myst_parser",              # Parse Markdown source files
 ]
 
 # -- Autodoc settings ---------------------------------------------------------
@@ -67,7 +68,7 @@ else:
     html_baseurl = ""
 
 # -- General ------------------------------------------------------------------
-source_suffix = ".rst"
+source_suffix = {".rst": None, ".md": None}
 master_doc = "index"
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 pygments_style = "sphinx"
