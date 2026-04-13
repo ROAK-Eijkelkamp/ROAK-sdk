@@ -71,18 +71,4 @@ For user-facing documentation, start with [Getting Started](docs/getting_started
 
 For concrete usage examples, see the scripts in the [scenarios](scenarios) folder.
 
-The generated Sphinx documentation contains the full API reference for the user-facing classes and methods.
-
-### Rebuilding Documentation
-
-If you make changes to the source code and want to regenerate the documentation:
-
-```bash
-# Install Sphinx (if not already installed)
-.venv/Scripts/python.exe -m pip install sphinx sphinx-rtd-theme
-
-# Rebuild the docs
-.venv/Scripts/python.exe -m sphinx -b html docs/sphinx docs/sphinx/_build/html
-```
-
-After the build completes, open the generated documentation at `docs/sphinx/_build/html/index.html` in your browser.
+The full API reference is available at [roak-eijkelkamp.github.io/ROAK-sdk](https://roak-eijkelkamp.github.io/ROAK-sdk).
